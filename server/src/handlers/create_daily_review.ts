@@ -1,12 +1,13 @@
 
+import { db } from '../db';
+import { dailyReviewsTable } from '../db/schema';
 import { type CreateDailyReviewInput, type DailyReview } from '../schema';
 
-export async function createDailyReview(input: CreateDailyReviewInput): Promise<DailyReview> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is creating a new daily review entry in the database.
-    // This will be used for the Daily Review Page with AM/PM sections.
-    return Promise.resolve({
-        id: 0, // Placeholder ID
+export const createDailyReview = async (input: CreateDailyReviewInput): Promise<DailyReview> => {
+  try {
+    // Insert daily review record
+    const result = await db.insert(dailyReviewsTable)
+      .values({
         user_id: input.user_id,
         review_date: input.review_date,
         type: input.type,
@@ -15,8 +16,15 @@ export async function createDailyReview(input: CreateDailyReviewInput): Promise<
         gratitude: input.gratitude || null,
         accomplished: input.accomplished || null,
         distractions: input.distractions || null,
-        tomorrows_shift: input.tomorrows_shift || null,
-        created_at: new Date(),
-        updated_at: new Date()
-    } as DailyReview);
-}
+        tomorrows_shift: input.tomorrows_shift || null
+      })
+      .returning()
+      .execute();
+
+    const dailyReview = result[0];
+    return dailyReview;
+  } catch (error) {
+    console.error('Daily review creation failed:', error);
+    throw error;
+  }
+};

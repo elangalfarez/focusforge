@@ -1,9 +1,24 @@
 
+import { db } from '../db';
+import { inboxItemsTable } from '../db/schema';
 import { type DeleteItemInput } from '../schema';
+import { eq, and } from 'drizzle-orm';
 
 export async function deleteInboxItem(input: DeleteItemInput): Promise<{ success: boolean }> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is deleting an inbox item from the database.
-    // This will be used to remove processed items from the inbox.
-    return Promise.resolve({ success: true });
+  try {
+    // Delete the inbox item with both id and user_id to ensure user owns the item
+    const result = await db.delete(inboxItemsTable)
+      .where(and(
+        eq(inboxItemsTable.id, input.id),
+        eq(inboxItemsTable.user_id, input.user_id)
+      ))
+      .returning()
+      .execute();
+
+    // Return success if a record was deleted
+    return { success: result.length > 0 };
+  } catch (error) {
+    console.error('Inbox item deletion failed:', error);
+    throw error;
+  }
 }

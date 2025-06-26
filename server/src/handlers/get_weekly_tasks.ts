@@ -1,9 +1,25 @@
 
+import { db } from '../db';
+import { weeklyTasksTable } from '../db/schema';
 import { type GetWeeklyTasksInput, type WeeklyTask } from '../schema';
+import { eq, and, asc } from 'drizzle-orm';
 
 export async function getWeeklyTasks(input: GetWeeklyTasksInput): Promise<WeeklyTask[]> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is fetching weekly tasks for a specific week and user.
-    // This will be used to populate the Weekly Planner Kanban board.
-    return Promise.resolve([]);
+  try {
+    const results = await db.select()
+      .from(weeklyTasksTable)
+      .where(
+        and(
+          eq(weeklyTasksTable.user_id, input.user_id),
+          eq(weeklyTasksTable.week_start_date, input.week_start_date)
+        )
+      )
+      .orderBy(asc(weeklyTasksTable.position))
+      .execute();
+
+    return results;
+  } catch (error) {
+    console.error('Failed to fetch weekly tasks:', error);
+    throw error;
+  }
 }

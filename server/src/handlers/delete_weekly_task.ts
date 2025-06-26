@@ -1,9 +1,22 @@
 
+import { db } from '../db';
+import { weeklyTasksTable } from '../db/schema';
 import { type DeleteItemInput } from '../schema';
+import { eq, and } from 'drizzle-orm';
 
-export async function deleteWeeklyTask(input: DeleteItemInput): Promise<{ success: boolean }> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is deleting a weekly task from the database.
-    // This will be used to remove completed tasks from the Kanban board.
-    return Promise.resolve({ success: true });
-}
+export const deleteWeeklyTask = async (input: DeleteItemInput): Promise<{ success: boolean }> => {
+  try {
+    // Delete the weekly task for the specific user
+    const result = await db.delete(weeklyTasksTable)
+      .where(and(
+        eq(weeklyTasksTable.id, input.id),
+        eq(weeklyTasksTable.user_id, input.user_id)
+      ))
+      .execute();
+
+    return { success: true };
+  } catch (error) {
+    console.error('Weekly task deletion failed:', error);
+    throw error;
+  }
+};

@@ -1,17 +1,24 @@
 
+import { db } from '../db';
+import { automationTasksTable } from '../db/schema';
 import { type CreateAutomationTaskInput, type AutomationTask } from '../schema';
 
-export async function createAutomationTask(input: CreateAutomationTaskInput): Promise<AutomationTask> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is creating a new automation task in the database.
-    // This will be used for the Automation Tracker Page.
-    return Promise.resolve({
-        id: 0, // Placeholder ID
+export const createAutomationTask = async (input: CreateAutomationTaskInput): Promise<AutomationTask> => {
+  try {
+    // Insert automation task record
+    const result = await db.insert(automationTasksTable)
+      .values({
         user_id: input.user_id,
         task_name: input.task_name,
-        workflow_notes: input.workflow_notes || null,
-        status: input.status || 'To Automate',
-        created_at: new Date(),
-        updated_at: new Date()
-    } as AutomationTask);
-}
+        workflow_notes: input.workflow_notes,
+        status: input.status || 'To Automate' // Default status if not provided
+      })
+      .returning()
+      .execute();
+
+    return result[0];
+  } catch (error) {
+    console.error('Automation task creation failed:', error);
+    throw error;
+  }
+};
